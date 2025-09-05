@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Znyx Echo</title>
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Outfit:wght@100..900&display=swap');
+            * {
+                border: 0;
+                padding: 0;
+                margin: 0;
+                outline: none;
+                font-family: "Outfit", sans-serif;
+                font-optical-sizing: auto;
+            }
+            html {
+                background-color: #FFFFFF
+            }
+            body {
+                background-color: #000000;
+                color: #FFFFFF;
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+            }
+            .screen {
+                width: 100%;
+                height: 100%;
+                position: relative;
+            }
+            .screen#splash-screen h1.logo {
+                font-family: "Outfit", sans-serif;
+                font-optical-sizing: auto;
+                font-weight: 700;
+                font-size: 12.5vh;
+                line-height: calc(12.5vh/1.25);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: fit-content;
+                opacity: 0;
+                animation: splash 2.5s;
+                animation-delay: 1.25s;
+                animation-fill-mode: forwards;
+            }
+            .screen#splash-screen span {
+                font-family: "DM Serif Display", serif;
+                font-weight: 300;
+                opacity: 0;
+                font-size: calc(12.5vh/5);
+                line-height: calc(12.5vh/5);
+                padding-top: calc(12.5vh/7.5);
+                color: rgba(255, 255, 255, 0.75);
+                animation: splash 2.5s;
+                animation-delay: 3.75s;
+                animation-fill-mode: forwards;
+            }
+            .screen#loading-screen .loader {
+                width: 7.5vh;
+                aspect-ratio: 1;
+                border-radius: 50%;
+                border: calc(7.5vh/6) solid #FFFFFF;
+                animation:
+                    l20-1 1s infinite linear alternate,
+                    l20-2 2s infinite linear;
+            }
+            @keyframes l20-1{
+                0%    {clip-path: polygon(50% 50%,0       0,  50%   0%,  50%    0%, 50%    0%, 50%    0%, 50%    0% )}
+                12.5% {clip-path: polygon(50% 50%,0       0,  50%   0%,  100%   0%, 100%   0%, 100%   0%, 100%   0% )}
+                25%   {clip-path: polygon(50% 50%,0       0,  50%   0%,  100%   0%, 100% 100%, 100% 100%, 100% 100% )}
+                50%   {clip-path: polygon(50% 50%,0       0,  50%   0%,  100%   0%, 100% 100%, 50%  100%, 0%   100% )}
+                62.5% {clip-path: polygon(50% 50%,100%    0, 100%   0%,  100%   0%, 100% 100%, 50%  100%, 0%   100% )}
+                75%   {clip-path: polygon(50% 50%,100% 100%, 100% 100%,  100% 100%, 100% 100%, 50%  100%, 0%   100% )}
+                100%  {clip-path: polygon(50% 50%,50%  100%,  50% 100%,   50% 100%,  50% 100%, 50%  100%, 0%   100% )}
+            }
+            @keyframes l20-2{ 
+                0%    {transform:scaleY(1)  rotate(0deg)}
+                49.99%{transform:scaleY(1)  rotate(135deg)}
+                50%   {transform:scaleY(-1) rotate(0deg)}
+                100%  {transform:scaleY(-1) rotate(-135deg)}
+            }
+            @keyframes splash {
+                0% {
+                    opacity: 0;
+                } 100% {
+                    opacity: 100%
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="screen" id="splash-screen">
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 75%">
+                <h1 class="logo">znyx</h1>
+                <span>Echo I</span>
+            </div>
+        </div>
+        <div class="screen" id="loading-screen">
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                <div class="loader"></div>
+            </div>
+        </div>
+        <div class="screen" id="player-screen"></div>
+    </body>
+    <script>
+        function selectTab(id) {
+            tabs = document.getElementsByClassName("screen")
+            for (var tab in tabs) {
+                tab = tabs[tab]
+                if (tab.className === "screen") {
+                    if (tab.id === id) {
+                        tab.style.display = "block"
+                    } else {
+                        tab.style.display = "none"
+                    }
+                }
+            }
+        }
+        window.addEventListener("load", async () => {
+            socket = new WebSocket("ws://" + window.location.href.split("://")[1])
+            socket.addEventListener("open", () => {
+                socket.addEventListener("message", ({ data }) => {
+                    console.log(data)
+                    packet = JSON.parse(atob(data.toString()))
+                    if (Object.keys(packet).length < 1) {
+                        selectTab("loading-screen")
+                    }
+                })
+                setTimeout(function(){
+                    socket.send(btoa(JSON.stringify({})))
+                }, 10000)
+                selectTab("splash-screen")
+            })
+        })
+    </script>
+</html>
